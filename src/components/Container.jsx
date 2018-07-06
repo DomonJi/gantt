@@ -13,8 +13,8 @@ class Container extends React.Component {
       tasks: [
         {
           number: 0,
-          left: 0,
-          top: 0,
+          left: 100,
+          top: 100,
           width: 200,
           dependencies: [1, 2]
         },
@@ -30,6 +30,20 @@ class Container extends React.Component {
           left: 500,
           top: 100,
           width: 100,
+          dependencies: [4]
+        },
+        {
+          number: 3,
+          left: 150,
+          top: 400,
+          width: 60,
+          dependencies: [4]
+        },
+        {
+          number: 4,
+          left: 600,
+          top: 400,
+          width: 150,
           dependencies: []
         }
       ],
@@ -114,8 +128,8 @@ class Container extends React.Component {
           // dropTask={this.onDropTask}
           // draggingTask={this.state.draggingTask}
           moveTask={this.moveTask}
-          column={30}
-          row={10}
+          column={60}
+          row={15}
         />
         <svg
           width="3000"
@@ -141,6 +155,7 @@ class Container extends React.Component {
             dependencies={t.dependencies.map(d => this.state.tasks[d])}
             left={t.left}
             top={t.top}
+            column={60}
             taskBodyWidth={t.width}
             updateLeft={this.onTaskUpdateLeft}
             updateWidth={this.onTaskUpdateWidth}
