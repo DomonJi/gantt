@@ -4,49 +4,14 @@ import HTML5Backend from 'react-dnd-html5-backend'
 import GanttBody from './GanttBody'
 import GanttHeader from './GanttHeader'
 import Task from './Task'
+import { generateTask } from './test'
 import _ from 'lodash'
 
 class Container extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: [
-        {
-          number: 0,
-          left: 100,
-          top: 100,
-          width: 200,
-          dependencies: [1, 2]
-        },
-        {
-          number: 1,
-          left: 300,
-          top: 200,
-          width: 200,
-          dependencies: []
-        },
-        {
-          number: 2,
-          left: 500,
-          top: 100,
-          width: 100,
-          dependencies: [4]
-        },
-        {
-          number: 3,
-          left: 150,
-          top: 400,
-          width: 60,
-          dependencies: [4]
-        },
-        {
-          number: 4,
-          left: 600,
-          top: 400,
-          width: 150,
-          dependencies: []
-        }
-      ],
+      tasks: generateTask(10),
       draggingTask: 0,
       draggingTaskDom: null
     }
@@ -123,7 +88,7 @@ class Container extends React.Component {
 
   render() {
     return (
-      <div className="container">
+      <div className="container" id="container">
         <GanttBody
           // dropTask={this.onDropTask}
           // draggingTask={this.state.draggingTask}

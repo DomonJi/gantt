@@ -60,7 +60,8 @@ class Task extends React.PureComponent {
     // TODO: Need throttle
     if (!this.state.leftHandleDragging && !this.state.rightHandleDragging) return
     const unitX = 3000 / this.props.column
-    const mouseX = Math.round(e.clientX / unitX) * unitX + 5
+    // console.log(e.clientX, e.pageX, e.screenX)
+    const mouseX = Math.round((e.pageX + document.getElementById('container').scrollLeft) / unitX) * unitX + 5
     const handleWidth = 10
     const taskRight = this.props.left + handleWidth + this.props.taskBodyWidth
     if (this.state.rightHandleDragging)
