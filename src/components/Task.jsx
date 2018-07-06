@@ -9,7 +9,7 @@ function getStyles(props) {
   return {
     position: 'absolute',
     transform,
-    opacity: isDragging ? 0 : 1,
+    opacity: isDragging ? 0.2 : 1,
     height: isDragging ? 0 : ''
   }
 }

@@ -6,8 +6,13 @@ function moveTask (props, monitor, component) {
   const delta = monitor.getDifferenceFromInitialOffset()
   const item = monitor.getItem()
 
-  let left = Math.round(item.left + delta.x)
-  let top = Math.round(item.top + delta.y)
+  let left = item.left + delta.x
+  let top = item.top + delta.y
+  
+  // snap to grid
+  const unitX = 3000 / props.column
+  const unitY = 1000 / props.row
+  ;[left, top] = [Math.round(left / unitX) * unitX, Math.round(top / unitY) * unitY]
 
   props.moveTask(item.number, left, top)
 }

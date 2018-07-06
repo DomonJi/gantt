@@ -114,6 +114,8 @@ class Container extends React.Component {
           // dropTask={this.onDropTask}
           // draggingTask={this.state.draggingTask}
           moveTask={this.moveTask}
+          column={30}
+          row={10}
         />
         <svg
           width="3000"
