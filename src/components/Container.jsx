@@ -11,7 +11,7 @@ class Container extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: generateTask(200),
+      tasks: generateTask(10),
       draggingTask: 0
     }
   }
