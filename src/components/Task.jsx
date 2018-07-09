@@ -51,7 +51,7 @@ class Task extends React.PureComponent {
 
   onHandleMouseMove = e => {
     if (!this.state.leftHandleDragging && !this.state.rightHandleDragging) return
-    const unitX = this.props.boardWidth / this.props.column
+    const unitX = this.props.boardWidth / this.props.adjustableNum
     const mouseX = Math.round((e.pageX + this.containerDom.scrollLeft) / unitX) * unitX + 5
     const handleWidth = 10
     const taskRight = this.props.left + handleWidth + this.props.taskBodyWidth

@@ -17,7 +17,7 @@ function moveTask(props, monitor, component) {
   let top = item.top + delta.y
 
   // snap to grid
-  const unitX = component.state.boardWidth / component.state.column
+  const unitX = component.state.boardWidth / component.state.adjustableNum
   const unitY = component.state.boardHeight / component.state.row
   ;[left, top] = [
     Math.round(left / unitX) * unitX,
@@ -27,8 +27,24 @@ function moveTask(props, monitor, component) {
   window.requestAnimationFrame(() => component.moveTask(item.number, left, top))
 }
 
+function canDrop(props, monitor) {
+  return true
+}
+
 function drop(props, monitor, component) {
   // 判断是否可以放置，时间是否冲突，如果不能放置则 reset Task 位置
+  // const item = monitor.getItem()
+  // const thisTask = component.state.tasks[item.number]
+  // const tasks = component.state.tasks
+  // const tasksSameLine = _.filter(tasks, t => t.top === thisTask.top)
+  // _.forEach(tasksSameLine, t => {
+  //   if (
+  //     (t.left > thisTask.left && t.left < thisTask.left + thisTask.width) ||
+  //     (t.left + t.width > thisTask.left &&
+  //       t.left + t.width < thisTask.left + thisTask.width)
+  //   )
+  //     return component.moveTask(item.number, item.left, item.top)
+  // })
   moveTask(props, monitor, component)
 
   // dispatch event
@@ -41,7 +57,8 @@ class Container extends React.PureComponent {
       boardWidth: 3000,
       boardHeight: 1000,
       column: 60,
-      row: 20
+      row: 20,
+      adjustableNum: 60
     }
   }
 
@@ -142,8 +159,8 @@ class Container extends React.PureComponent {
               height: this.state.boardHeight
             }}
           >
-            {Array.from({ length: this.state.column }).map(() => (
-              <div className="column" />
+            {Array.from({ length: this.state.column }).map((c, i) => (
+              <div className="column" key={i} />
             ))}
           </div>
         )}
@@ -174,6 +191,7 @@ class Container extends React.PureComponent {
             top={t.top}
             column={this.state.column}
             boardWidth={this.state.boardWidth}
+            adjustableNum={this.state.adjustableNum}
             taskBodyWidth={t.width}
             updateLeft={this.onTaskUpdateLeft}
             updateWidth={this.onTaskUpdateWidth}
@@ -188,9 +206,7 @@ export default DragDropContext(HTML5Backend)(
   DropTarget(
     Symbol.for('Task'),
     {
-      canDrop() {
-        return true
-      },
+      canDrop,
       drop,
       hover: _.throttle(moveTask, 100)
     },
