@@ -22,6 +22,13 @@ function moveTask (props, monitor, component) {
   window.requestAnimationFrame(() => props.moveTask(item.number, left, top))
 }
 
+function drop(props, monitor, component) {
+  // 判断是否可以放置，时间是否冲突，如果不能放置则 reset Task 位置
+  moveTask(props, monitor, component)
+
+  // dispatch event
+}
+
 class GanttBody extends React.PureComponent {
   render () {
     return this.props.connentDropTarget(
@@ -37,7 +44,7 @@ export default DropTarget(
     canDrop () {
       return true
     },
-    drop: moveTask,
+    drop,
     hover: _.throttle(moveTask, 100)
   },
   connect => ({

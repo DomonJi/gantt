@@ -12,49 +12,10 @@ class Container extends React.PureComponent {
     super(props)
     this.state = {
       tasks: generateTask(100),
-      draggingTask: 0
     }
-  }
-
-  // componentDidMount() {
-  //   document.addEventListener('mouseup', this.onMouseUp)
-  //   document.addEventListener('mousemove', this.onMouseMove)
-  // }
-
-  // componentWillUnmount() {
-  //   document.removeEventListener('mousemove', this.onMouseMove)
-  //   document.removeEventListener('mouseup', this.onMouseUp)
-  // }
-
-  onMouseUp = () => {}
-
-  onMouseMove = () => {}
-
-  onDropTask = () => {
-    const taskDom = document.getElementById(
-      `task-${this.state.draggingTask.props.number}`
-    )
-    console.log(taskDom)
-    if (!taskDom) return
-    const rect = taskDom.getBoundingClientRect()
-    return {
-      left: rect.left,
-      top: rect.top
-    }
-  }
-
-  onBeginDrag = task => {
-    this.setState(() => ({
-      draggingTask: task
-    }))
   }
 
   onTaskUpdateLeft = (number, left) => {
-    // this.setState(prev => ({
-    //   tasks: prev.tasks.map(
-    //     t => (t.number === number ? Object.assign(t, { left }) : t)
-    //   )
-    // }))
     this.setState(
       produce(state => {
         state.tasks[number].left = left
@@ -63,11 +24,6 @@ class Container extends React.PureComponent {
   }
 
   onTaskUpdateWidth = (number, width) => {
-    // this.setState(prev => ({
-    //   tasks: prev.tasks.map(
-    //     t => (t.number === number ? Object.assign(t, { width }) : t)
-    //   )
-    // }))
     this.setState(
       produce(state => {
         state.tasks[number].width = width
@@ -76,11 +32,6 @@ class Container extends React.PureComponent {
   }
 
   moveTask = (number, left, top) => {
-    // this.setState(prev => ({
-    //   tasks: prev.tasks.map(t => {
-    //     return t.number === number ? Object.assign(t, { left, top }) : t
-    //   })
-    // }))
     this.setState(
       produce(state => {
         state.tasks[number].left = left
@@ -109,13 +60,7 @@ class Container extends React.PureComponent {
   render() {
     return (
       <div className="container" id="container">
-        <GanttBody
-          // dropTask={this.onDropTask}
-          // draggingTask={this.state.draggingTask}
-          moveTask={this.moveTask}
-          column={60}
-          row={15}
-        />
+        <GanttBody moveTask={this.moveTask} column={60} row={15} />
         <svg
           width="3000"
           height="1000"

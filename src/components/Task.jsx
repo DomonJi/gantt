@@ -27,33 +27,23 @@ class Task extends React.PureComponent {
     }
     this.startPoint = React.createRef()
     this.endPoint = React.createRef()
-    this.DragHandleInterval = undefined
     this.onHandleMouseMove = _.throttle(this.onHandleMouseMove, 100)
   }
 
   componentDidMount() {
-    if (this.props.connectDragPreview) {
-      // this.props.connectDragPreview(getEmptyImage(), {
-      //   captureDraggingState: true
-      // })
-    }
     document.addEventListener('mouseup', this.onHandleMouseUp)
-    // document.addEventListener('mousemove', this.onHandleMouseMove)
   }
 
   componentWillUnmount() {
     document.removeEventListener('mouseup', this.onHandleMouseUp)
-    // document.removeEventListener('mousemove', this.onHandleMouseMove)
   }
 
   onHandleMouseDown = pos => () => {
     this.setState({ [`${pos}HandleDragging`]: true })
     document.addEventListener('mousemove',this.onHandleMouseMove)
-    // document.addEventListener('mouseup', this.onHandleMouseUp)
   }
 
   onHandleMouseUp = () => {
-    // this.setState({ [`${pos}HandleDragging`]: false })
     if (!this.state.leftHandleDragging && !this.state.rightHandleDragging) return
     this.setState({
       leftHandleDragging: false,
@@ -63,42 +53,26 @@ class Task extends React.PureComponent {
   }
 
   onHandleMouseMove = e => {
-    // TODO: Need throttle
     if (!this.state.leftHandleDragging && !this.state.rightHandleDragging) return
     const unitX = 3000 / this.props.column
-    // console.log(e.clientX, e.pageX, e.screenX)
     const mouseX = Math.round((e.pageX + document.getElementById('container').scrollLeft) / unitX) * unitX + 5
     const handleWidth = 10
     const taskRight = this.props.left + handleWidth + this.props.taskBodyWidth
     if (this.state.rightHandleDragging)
       this.props.updateWidth(this.props.number, mouseX - handleWidth * 3 /2 - this.props.left)
     else {
-      // this.setState(prev => ({
-      //   taskBodyWidth: taskRight - mouseX - handleWidth / 2
-      // }))
       this.props.updateWidth(this.props.number, taskRight - mouseX - handleWidth / 2)
       this.props.updateLeft(this.props.number, mouseX - handleWidth / 2)
     }
   }
 
   render() {
-    // return this.props.connectDragSource(
-    //   <div
-    //     className="task"
-    //     style={getStyles(this.props)}
-    //     id={this.props.id}
-    //   >
-    //     <TaskBody></TaskBody>
-    //   </div>
-    // )
     return (
       <div className="task" style={getStyles(this.props)}>
         <div
           className="task-handle handle-left"
           ref={this.startPoint}
           onMouseDown={this.onHandleMouseDown('left')}
-          // onMouseUp={this.onHandleMouseUp('left')}
-          // onMouseMove={this.onHandleMouseMove('left')}
         />
         {this.props.connectDragSource(
           <div
@@ -111,8 +85,6 @@ class Task extends React.PureComponent {
           className="task-handle handle-right"
           ref={this.endPoint}
           onMouseDown={this.onHandleMouseDown('right')}
-          // onMouseUp={this.onHandleMouseUp('right')}
-          // onMouseMove={this.onHandleMouseMove('right')}
         />
       </div>
     )
