@@ -1,12 +1,38 @@
 import React from 'react'
-import { DragDropContext } from 'react-dnd'
+import { DragDropContext, DropTarget } from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend'
-import GanttBody from './GanttBody'
+// import GanttBody from './GanttBody'
 import Task from './Task'
 import { generateTask } from './test'
 import _ from 'lodash'
 import produce from 'immer'
 
+function moveTask (props, monitor, component) {
+  if (!component) return
+  const delta = monitor.getDifferenceFromInitialOffset()
+  const item = monitor.getItem()
+  if (!item) return
+
+  let left = item.left + delta.x
+  let top = item.top + delta.y
+
+  // snap to grid
+  const unitX = 3000 / 60
+  const unitY = 1000 / 15
+  ;[left, top] = [
+    Math.round(left / unitX) * unitX,
+    Math.round(top / unitY) * unitY
+  ]
+
+  window.requestAnimationFrame(() => component.moveTask(item.number, left, top))
+}
+
+function drop(props, monitor, component) {
+  // 判断是否可以放置，时间是否冲突，如果不能放置则 reset Task 位置
+  moveTask(props, monitor, component)
+
+  // dispatch event
+}
 class Container extends React.PureComponent {
   constructor(props) {
     super(props)
@@ -60,7 +86,13 @@ class Container extends React.PureComponent {
   render() {
     return (
       <div className="container" id="container">
-        <GanttBody moveTask={this.moveTask} column={60} row={15} />
+        {
+          this.props.connectDropTarget(
+            <div className="gantt-body">
+              {Array.from({ length: 60 }).map(() => <div className="column" />)}
+            </div>
+          )
+        }
         <svg
           width="3000"
           height="1000"
@@ -97,4 +129,12 @@ class Container extends React.PureComponent {
   }
 }
 
-export default DragDropContext(HTML5Backend)(Container)
+export default DragDropContext(HTML5Backend)(DropTarget(Symbol.for('Task'), {
+  canDrop() {
+    return true
+  },
+  drop,
+  hover: _.throttle(moveTask, 100)
+}, connect => ({
+  connectDropTarget: connect.dropTarget()
+}))(Container))
