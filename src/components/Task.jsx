@@ -5,13 +5,12 @@ import _ from 'lodash'
 
 function getStyles(props) {
   const { left, top, isDragging } = props
-  const transform = `translate3d(${left}px, ${top}px, 0)`
+  const transform = `translate3d(${left - 10}px, ${top}px, 0)`
 
   return {
     position: 'absolute',
     transform,
     opacity: isDragging ? 0.2 : 1,
-    height: isDragging ? 0 : ''
   }
 }
 
@@ -19,11 +18,8 @@ class Task extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      left: 0,
-      top: 0,
       leftHandleDragging: false,
       rightHandleDragging: false,
-      taskBodyWidth: 200
     }
     this.startPoint = React.createRef()
     this.endPoint = React.createRef()
@@ -32,6 +28,7 @@ class Task extends React.PureComponent {
 
   componentDidMount() {
     document.addEventListener('mouseup', this.onHandleMouseUp)
+    this.containerDom = document.getElementById('container')
   }
 
   componentWillUnmount() {
@@ -54,12 +51,12 @@ class Task extends React.PureComponent {
 
   onHandleMouseMove = e => {
     if (!this.state.leftHandleDragging && !this.state.rightHandleDragging) return
-    const unitX = 3000 / this.props.column
-    const mouseX = Math.round((e.pageX + document.getElementById('container').scrollLeft) / unitX) * unitX + 5
+    const unitX = this.props.boardWidth / this.props.column
+    const mouseX = Math.round((e.pageX + this.containerDom.scrollLeft) / unitX) * unitX + 5
     const handleWidth = 10
     const taskRight = this.props.left + handleWidth + this.props.taskBodyWidth
     if (this.state.rightHandleDragging)
-      this.props.updateWidth(this.props.number, mouseX - handleWidth * 3 /2 - this.props.left)
+      this.props.updateWidth(this.props.number, mouseX - handleWidth / 2 - this.props.left)
     else {
       this.props.updateWidth(this.props.number, taskRight - mouseX - handleWidth / 2)
       this.props.updateLeft(this.props.number, mouseX - handleWidth / 2)

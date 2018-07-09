@@ -7,7 +7,7 @@ import { generateTask } from './test'
 import _ from 'lodash'
 import produce from 'immer'
 
-function moveTask (props, monitor, component) {
+function moveTask(props, monitor, component) {
   if (!component) return
   const delta = monitor.getDifferenceFromInitialOffset()
   const item = monitor.getItem()
@@ -17,8 +17,8 @@ function moveTask (props, monitor, component) {
   let top = item.top + delta.y
 
   // snap to grid
-  const unitX = 3000 / 60
-  const unitY = 1000 / 15
+  const unitX = component.state.boardWidth / component.state.column
+  const unitY = component.state.boardHeight / component.state.row
   ;[left, top] = [
     Math.round(left / unitX) * unitX,
     Math.round(top / unitY) * unitY
@@ -37,8 +37,25 @@ class Container extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: generateTask(100),
+      tasks: generateTask(50),
+      boardWidth: 3000,
+      boardHeight: 1000,
+      column: 60,
+      row: 20
     }
+  }
+
+  componentDidMount() {
+    this.setState(
+      produce(state =>
+        state.tasks.forEach(t => {
+          t.left = this.computeTaskLeft(t.left)
+          t.top = this.computeTaskTop(t.top)
+          t.width = this.computeTaskBodyWidth(t.width)
+        })
+      )
+    )
+    window.scale = this.scale
   }
 
   onTaskUpdateLeft = (number, left) => {
@@ -66,6 +83,22 @@ class Container extends React.PureComponent {
     )
   }
 
+  scale = (column, boardWidth = this.state.boardWidth) => {
+    this.setState(
+      produce(state => {
+        state.tasks.forEach(t => {
+          t.left =
+            (t.left / (state.boardWidth / state.column)) * (boardWidth / column)
+          t.width =
+            (t.width / (state.boardWidth / state.column)) *
+            (boardWidth / column)
+        })
+        state.boardWidth = boardWidth
+        state.column = column
+      })
+    )
+  }
+
   computeDependencies() {
     const res = []
     _.forEach(this.state.tasks, t => {
@@ -73,9 +106,9 @@ class Container extends React.PureComponent {
         res.push({
           origin: t.number,
           dependence: d,
-          oX: t.left + t.width + 5, //一个半手柄长度
+          oX: t.left + t.width - 5, //一个半手柄长度
           oY: t.top + 20, //半个宽度
-          dX: this.state.tasks[d].left + 15,
+          dX: this.state.tasks[d].left + 5,
           dY: this.state.tasks[d].top + 20
         })
       })
@@ -83,19 +116,40 @@ class Container extends React.PureComponent {
     return res
   }
 
+  computeTaskLeft = left => {
+    const unitX = this.state.boardWidth / this.state.column
+    return Math.round(left / unitX) * unitX
+  }
+
+  computeTaskTop = top => {
+    const unitY = this.state.boardHeight / this.state.row
+    return Math.round(top / unitY) * unitY
+  }
+
+  computeTaskBodyWidth = width => {
+    const unitX = this.state.boardWidth / this.state.column
+    return Math.round(width / unitX) * unitX
+  }
+
   render() {
     return (
       <div className="container" id="container">
-        {
-          this.props.connectDropTarget(
-            <div className="gantt-body">
-              {Array.from({ length: 60 }).map(() => <div className="column" />)}
-            </div>
-          )
-        }
+        {this.props.connectDropTarget(
+          <div
+            className="gantt-body"
+            style={{
+              width: this.state.boardWidth,
+              height: this.state.boardHeight
+            }}
+          >
+            {Array.from({ length: this.state.column }).map(() => (
+              <div className="column" />
+            ))}
+          </div>
+        )}
         <svg
-          width="3000"
-          height="1000"
+          width={this.state.boardWidth}
+          height={this.state.boardHeight}
           style={{ position: 'absolute', pointerEvents: 'none', zIndex: 1 }}
         >
           {_.map(this.computeDependencies(), d => (
@@ -118,7 +172,8 @@ class Container extends React.PureComponent {
             dependencies={t.dependencies.map(d => this.state.tasks[d])}
             left={t.left}
             top={t.top}
-            column={60}
+            column={this.state.column}
+            boardWidth={this.state.boardWidth}
             taskBodyWidth={t.width}
             updateLeft={this.onTaskUpdateLeft}
             updateWidth={this.onTaskUpdateWidth}
@@ -129,12 +184,18 @@ class Container extends React.PureComponent {
   }
 }
 
-export default DragDropContext(HTML5Backend)(DropTarget(Symbol.for('Task'), {
-  canDrop() {
-    return true
-  },
-  drop,
-  hover: _.throttle(moveTask, 100)
-}, connect => ({
-  connectDropTarget: connect.dropTarget()
-}))(Container))
+export default DragDropContext(HTML5Backend)(
+  DropTarget(
+    Symbol.for('Task'),
+    {
+      canDrop() {
+        return true
+      },
+      drop,
+      hover: _.throttle(moveTask, 100)
+    },
+    connect => ({
+      connectDropTarget: connect.dropTarget()
+    })
+  )(Container)
+)

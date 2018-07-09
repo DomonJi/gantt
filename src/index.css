@@ -7,8 +7,6 @@ body {
 
 .gantt-body {
   position: absolute;
-  width: 3000px;
-  height: 1000px;
   min-height: 100%;
   padding: 0;
   background-color: #f5f5f5;
