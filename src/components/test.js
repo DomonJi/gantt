@@ -5,7 +5,7 @@ export function generateTask (length) {
     top: Math.random() * 900,
     width: Math.random() * 150 + 30,
     dependencies:
-      k < length - 1 && Math.random() < 0.5
+      k < length - 1 && Math.random() < 0.3
         ? [Math.floor(Math.random() * (length - 1 - k)) + k + 1]
         : []
   }))

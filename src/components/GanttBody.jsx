@@ -26,7 +26,7 @@ class GanttBody extends React.PureComponent {
   render () {
     return this.props.connentDropTarget(
       <div className="gantt-body">
-        {Array.from({ length: 60 }).map(() => <div className="column" />)}
+        {Array.from({ length: this.props.column }).map(() => <div className="column" />)}
       </div>
     )
   }
@@ -38,7 +38,7 @@ export default DropTarget(
       return true
     },
     drop: moveTask,
-    hover: _.throttle(moveTask, 60)
+    hover: _.throttle(moveTask, 100)
   },
   connect => ({
     connentDropTarget: connect.dropTarget()
