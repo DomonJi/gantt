@@ -2,20 +2,33 @@ import React from 'react'
 import { DragDropContext } from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend'
 import GanttBody from './GanttBody'
-import GanttHeader from './GanttHeader'
 import Task from './Task'
 import { generateTask } from './test'
 import _ from 'lodash'
+import produce from 'immer'
 
-class Container extends React.Component {
+class Container extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: generateTask(10),
-      draggingTask: 0,
-      draggingTaskDom: null
+      tasks: generateTask(200),
+      draggingTask: 0
     }
   }
+
+  // componentDidMount() {
+  //   document.addEventListener('mouseup', this.onMouseUp)
+  //   document.addEventListener('mousemove', this.onMouseMove)
+  // }
+
+  // componentWillUnmount() {
+  //   document.removeEventListener('mousemove', this.onMouseMove)
+  //   document.removeEventListener('mouseup', this.onMouseUp)
+  // }
+
+  onMouseUp = () => {}
+
+  onMouseMove = () => {}
 
   onDropTask = () => {
     const taskDom = document.getElementById(
@@ -31,42 +44,49 @@ class Container extends React.Component {
   }
 
   onBeginDrag = task => {
-    this.setState(
-      () => ({
-        draggingTask: task
-      }),
-      () => {
-        this.setState({
-          taskDom: document.getElementById(
-            `task-${this.state.draggingTask.props.number}`
-          )
-        })
-      }
-    )
+    this.setState(() => ({
+      draggingTask: task
+    }))
   }
 
   onTaskUpdateLeft = (number, left) => {
-    this.setState(prev => ({
-      tasks: prev.tasks.map(
-        t => (t.number === number ? Object.assign(t, { left }) : t)
-      )
-    }))
+    // this.setState(prev => ({
+    //   tasks: prev.tasks.map(
+    //     t => (t.number === number ? Object.assign(t, { left }) : t)
+    //   )
+    // }))
+    this.setState(
+      produce(state => {
+        state.tasks[number].left = left
+      })
+    )
   }
 
   onTaskUpdateWidth = (number, width) => {
-    this.setState(prev => ({
-      tasks: prev.tasks.map(
-        t => (t.number === number ? Object.assign(t, { width }) : t)
-      )
-    }))
+    // this.setState(prev => ({
+    //   tasks: prev.tasks.map(
+    //     t => (t.number === number ? Object.assign(t, { width }) : t)
+    //   )
+    // }))
+    this.setState(
+      produce(state => {
+        state.tasks[number].width = width
+      })
+    )
   }
 
   moveTask = (number, left, top) => {
-    this.setState(prev => ({
-      tasks: prev.tasks.map(t => {
-        return t.number === number ? Object.assign(t, { left, top }) : t
+    // this.setState(prev => ({
+    //   tasks: prev.tasks.map(t => {
+    //     return t.number === number ? Object.assign(t, { left, top }) : t
+    //   })
+    // }))
+    this.setState(
+      produce(state => {
+        state.tasks[number].left = left
+        state.tasks[number].top = top
       })
-    }))
+    )
   }
 
   computeDependencies() {
@@ -109,6 +129,7 @@ class Container extends React.Component {
               stroke="#e8a917"
               style={{ strokeWidth: '1px' }}
               fill="none"
+              key={`${d.origin}-${d.dependence}`}
             />
           ))}
         </svg>

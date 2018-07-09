@@ -1,6 +1,7 @@
 import React from 'react'
 import { DragSource } from 'react-dnd'
 import { getEmptyImage } from 'react-dnd-html5-backend'
+import _ from 'lodash'
 
 function getStyles(props) {
   const { left, top, isDragging } = props
@@ -27,6 +28,7 @@ class Task extends React.PureComponent {
     this.startPoint = React.createRef()
     this.endPoint = React.createRef()
     this.DragHandleInterval = undefined
+    this.onHandleMouseMove = _.throttle(this.onHandleMouseMove, 100)
   }
 
   componentDidMount() {
@@ -36,24 +38,28 @@ class Task extends React.PureComponent {
       // })
     }
     document.addEventListener('mouseup', this.onHandleMouseUp)
-    document.addEventListener('mousemove', this.onHandleMouseMove)
+    // document.addEventListener('mousemove', this.onHandleMouseMove)
   }
 
   componentWillUnmount() {
     document.removeEventListener('mouseup', this.onHandleMouseUp)
-    document.removeEventListener('mousemove', this.onHandleMouseMove)
+    // document.removeEventListener('mousemove', this.onHandleMouseMove)
   }
 
   onHandleMouseDown = pos => () => {
     this.setState({ [`${pos}HandleDragging`]: true })
+    document.addEventListener('mousemove',this.onHandleMouseMove)
+    // document.addEventListener('mouseup', this.onHandleMouseUp)
   }
 
   onHandleMouseUp = () => {
     // this.setState({ [`${pos}HandleDragging`]: false })
+    if (!this.state.leftHandleDragging && !this.state.rightHandleDragging) return
     this.setState({
       leftHandleDragging: false,
       rightHandleDragging: false,
     })
+    document.removeEventListener('mousemove',this.onHandleMouseMove)
   }
 
   onHandleMouseMove = e => {
