@@ -8,10 +8,10 @@ import _ from 'lodash'
 import produce from 'immer'
 
 function moveTask(props, monitor, component) {
-  if (!component) return
+  if (!component || !monitor) return
   const delta = monitor.getDifferenceFromInitialOffset()
   const item = monitor.getItem()
-  if (!item) return
+  if (!item || !delta) return
 
   let left = item.left + delta.x
   let top = item.top + delta.y
@@ -56,9 +56,14 @@ class Container extends React.PureComponent {
       tasks: generateTask(50),
       boardWidth: 3000,
       boardHeight: 1000,
-      column: 60,
+      column: 120,
       row: 20,
-      adjustableNum: 60
+      adjustableNum: 120,
+      // dependencyDragging: false,
+      // draggingNumber: undefined,
+      // draggingPos: undefined,
+      // mouseX: undefined,
+      // mouseY: undefined,
     }
   }
 
@@ -148,6 +153,33 @@ class Container extends React.PureComponent {
     return Math.round(width / unitX) * unitX
   }
 
+  // onDependencyMouseMove = (pos, number, x, y) => {
+  //   this.setState(produce(state => {
+  //     state.draggingNumber = number
+  //     state.dependencyDragging = true
+  //     state.mouseX = x
+  //     state.mouseY = y
+  //     state.draggingPos = pos
+  //   }))
+  // }
+
+  // renderDependencyDragging() {
+  //   if (!this.state.dependencyDragging) return
+  //   const draggingTask = this.state.tasks[this.state.draggingNumber]
+  //   if (this.state.draggingPos === 'right') {
+  //     return <line
+  //       x1={draggingTask.left +draggingTask.width} y1={draggingTask.top + 40}
+  //       x2={this.state.mouseX} y2={this.state.mouseY}
+  //     ></line>
+  //   }
+  // }
+
+  addDependency = (originNum, depenNum) => {
+    this.setState(produce(state => {
+      state.tasks[originNum].dependencies.push(depenNum)
+    }))
+  }
+
   render() {
     return (
       <div className="container" id="container">
@@ -195,6 +227,8 @@ class Container extends React.PureComponent {
             taskBodyWidth={t.width}
             updateLeft={this.onTaskUpdateLeft}
             updateWidth={this.onTaskUpdateWidth}
+            // dependencyMouseMove={this.onDependencyMouseMove}
+            addDependency={this.addDependency}
           />
         ))}
       </div>
