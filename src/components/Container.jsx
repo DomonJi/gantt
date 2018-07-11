@@ -59,12 +59,13 @@ class Container extends React.PureComponent {
       column: 120,
       row: 20,
       adjustableNum: 120,
-      // dependencyDragging: false,
-      // draggingNumber: undefined,
-      // draggingPos: undefined,
-      // mouseX: undefined,
-      // mouseY: undefined,
+      dependencyDragging: false,
+      draggingNumber: undefined,
+      draggingPos: undefined,
+      mouseX: 0,
+      mouseY: 0
     }
+    // this.draggingMouseMove = _.throttle(this.draggingMouseMove, 60)
   }
 
   componentDidMount() {
@@ -78,6 +79,7 @@ class Container extends React.PureComponent {
       )
     )
     window.scale = this.scale
+    this.containerDom = document.getElementById('container')
   }
 
   onTaskUpdateLeft = (number, left) => {
@@ -175,14 +177,80 @@ class Container extends React.PureComponent {
   // }
 
   addDependency = (originNum, depenNum) => {
-    this.setState(produce(state => {
-      state.tasks[originNum].dependencies.push(depenNum)
-    }))
+    this.setState(
+      produce(state => {
+        state.tasks[originNum].dependencies.push(depenNum)
+      })
+    )
+  }
+
+  dependencyBeginDrag = ({ number, pos, monitor }) => {
+    this.setState(
+      produce(state => {
+        state.draggingNumber = number
+        state.draggingPos = pos
+        state.dependencyDragging = true
+      })
+    )
+    // this.dragInterval = setInterval(this.draggingMouseMove(monitor), 60)
+    window.requestAnimationFrame(this.draggingMouseMove(monitor))
+  }
+
+  dependencyEndDrag = () => {
+    // clearInterval(this.dragInterval)
+    this.setState(
+      produce(state => {
+        state.dependencyDragging = false
+      })
+    )
+  }
+
+  draggingMouseMove = monitor => () => {
+    // if (!this.state.dependencyDragging) return
+    if (!monitor || ! monitor.getClientOffset()) return
+    // scrollLeft Top也应该存入state做成响应式
+    const mouseX = monitor.getClientOffset().x + this.containerDom.scrollLeft
+    const mouseY = monitor.getClientOffset().y + this.containerDom.scrollTop
+    this.setState({
+      mouseX,
+      mouseY
+    })
+    if (this.state.dependencyDragging)
+      window.requestAnimationFrame(this.draggingMouseMove(monitor))
+  }
+
+  renderDraggingBezier() {
+    if (!this.state.dependencyDragging) return
+    const curTask = this.state.tasks[this.state.draggingNumber]
+    const x =
+      this.state.draggingPos === 'left'
+        ? curTask.left + 5
+        : curTask.left + curTask.width + 5
+    const y = curTask.top + 20
+    const x1 = this.state.draggingPos === 'left' ? x - 100 : x + 100
+    const x2 =
+      this.state.draggingPos === 'left'
+        ? this.state.mouseX + 100
+        : this.state.mouseX - 100
+    return (
+      <path
+        d={`M${x} ${y}C${x1},${y} ${x2},${this.state.mouseY} ${
+          this.state.mouseX
+        },${this.state.mouseY}`}
+        stroke="#e8a917"
+        fill="none"
+        style={{ strokeWidth: '1px' }}
+      />
+    )
   }
 
   render() {
     return (
-      <div className="container" id="container">
+      <div
+        className="container"
+        id="container"
+        onMouseMove={this.draggingMouseMove}
+      >
         {this.props.connectDropTarget(
           <div
             className="gantt-body"
@@ -212,6 +280,7 @@ class Container extends React.PureComponent {
               key={`${d.origin}-${d.dependence}`}
             />
           ))}
+          {this.renderDraggingBezier()}
         </svg>
         {this.state.tasks.map(t => (
           <Task
@@ -229,6 +298,8 @@ class Container extends React.PureComponent {
             updateWidth={this.onTaskUpdateWidth}
             // dependencyMouseMove={this.onDependencyMouseMove}
             addDependency={this.addDependency}
+            dependencyBeginDrag={this.dependencyBeginDrag}
+            dependencyEndDrag={this.dependencyEndDrag}
           />
         ))}
       </div>

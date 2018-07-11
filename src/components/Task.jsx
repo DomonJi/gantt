@@ -110,17 +110,27 @@ class Task extends React.PureComponent {
           ref={this.startPoint}
           onMouseDown={this.onHandleMouseDown('left')}
         />
-        <DependencyDraggble pos="left" number={this.props.number} />
+        <DependencyDraggble
+          pos="left"
+          number={this.props.number}
+          dependencyBeginDrag={this.props.dependencyBeginDrag}
+          dependencyEndDrag={this.props.dependencyEndDrag}
+        />
         {this.props.connectDropTarget(
           this.props.connectDragSource(
             <div
-              className={`task-body${this.props.isOver ? ' hover':''}`}
+              className={`task-body${this.props.isOver ? ' hover' : ''}`}
               id={this.props.id}
               style={{ width: this.props.taskBodyWidth }}
             />
           )
         )}
-        <DependencyDraggble pos="right" number={this.props.number} />
+        <DependencyDraggble
+          pos="right"
+          number={this.props.number}
+          dependencyBeginDrag={this.props.dependencyBeginDrag}
+          dependencyEndDrag={this.props.dependencyEndDrag}
+        />
         <div
           className="task-handle handle-right"
           ref={this.endPoint}
@@ -152,7 +162,7 @@ export default DragSource(
     Symbol.for('Dependency'),
     {
       canDrop(props, monitor) {
-        return props.number != monitor.getItem().number
+        return props.number !== monitor.getItem().number
       },
       drop(props, monitor, component) {
         // console.log(monitor.getItem())

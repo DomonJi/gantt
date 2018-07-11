@@ -27,10 +27,18 @@ export default DragSource(
   {
     // 在beginDrag中dispatch一个action通知Container的svg画线
     beginDrag (props, monitor, component) {
+      props.dependencyBeginDrag({
+        number: props.number,
+        pos: props.pos,
+        monitor
+      })
       return {
         number: props.number,
         pos: props.pos
       }
+    },
+    endDrag (props, monitor, component) {
+      props.dependencyEndDrag()
     }
   },
   (connect, monitor) => ({
