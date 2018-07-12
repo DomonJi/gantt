@@ -11,6 +11,7 @@ const DenpendencyDraggble = props =>
   props.connectDragSource(
     <div
       className={className(props)}
+      style={{ backgroundColor: props.color }}
       // id={`dependency-${props.number}-${props.pos}`}
     />
   )

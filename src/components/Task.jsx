@@ -30,6 +30,14 @@ class Task extends React.PureComponent {
     this.startPoint = React.createRef()
     this.endPoint = React.createRef()
     this.onHandleMouseMove = _.throttle(this.onHandleMouseMove, 100)
+    this.randomColor = [
+      'rgb(253, 154, 0)',
+      'white',
+      'rgb(232, 56, 79)',
+      'rgb(20, 170, 245)',
+      'rgb(0, 191, 156)',
+      'white'
+    ][Math.round(Math.random() * 5)]
   }
 
   // static getDerivedStateFromProps(props, state) {
@@ -111,19 +119,24 @@ class Task extends React.PureComponent {
           className="task-handle handle-left"
           ref={this.startPoint}
           onMouseDown={this.onHandleMouseDown('left')}
+          style={{ backgroundColor: this.randomColor }}
         />
         <DependencyDraggble
           pos="left"
           number={this.props.number}
           dependencyBeginDrag={this.props.dependencyBeginDrag}
           dependencyEndDrag={this.props.dependencyEndDrag}
+          color={this.randomColor}
         />
         {this.props.connectDropTarget(
           this.props.connectDragSource(
             <div
               className={`task-body${this.props.isOver ? ' hover' : ''}`}
               id={this.props.id}
-              style={{ width: this.props.taskBodyWidth }}
+              style={{
+                width: this.props.taskBodyWidth,
+                backgroundColor: this.randomColor
+              }}
             />
           )
         )}
@@ -132,11 +145,13 @@ class Task extends React.PureComponent {
           number={this.props.number}
           dependencyBeginDrag={this.props.dependencyBeginDrag}
           dependencyEndDrag={this.props.dependencyEndDrag}
+          color={this.randomColor}
         />
         <div
           className="task-handle handle-right"
           ref={this.endPoint}
           onMouseDown={this.onHandleMouseDown('right')}
+          style={{ backgroundColor: this.randomColor }}
         />
       </div>
     )

@@ -53,10 +53,10 @@ class Container extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: generateTask(200),
+      tasks: generateTask(50),
       boardWidth: 3000,
       boardHeight: 1000,
-      column: 120,
+      column: 60,
       row: 20,
       adjustableNum: 120,
       // 下边这些状态是用于拖拽依赖连线的时候画线用的
@@ -70,6 +70,7 @@ class Container extends React.PureComponent {
       mouseY: 0
     }
     // this.draggingMouseMove = _.throttle(this.draggingMouseMove, 60)
+    // this.onWheel = _.throttle(this.onWheel, 100)
   }
 
   componentDidMount() {
@@ -82,7 +83,7 @@ class Container extends React.PureComponent {
         })
       )
     )
-    window.scale = this.scale
+    // window.scale = this.scale
     this.containerDom = document.getElementById('container')
   }
 
@@ -112,6 +113,12 @@ class Container extends React.PureComponent {
   }
 
   scale = (column, boardWidth = this.state.boardWidth) => {
+    // if (!boardWidth)
+    //   boardWidth = (this.state.boardWidth * column) / this.state.column
+    boardWidth = Math.max(
+      this.containerDom.getBoundingClientRect().width,
+      boardWidth
+    )
     this.setState(
       produce(state => {
         state.tasks.forEach(t => {
@@ -124,6 +131,23 @@ class Container extends React.PureComponent {
         state.boardWidth = boardWidth
         state.column = column
       })
+    )
+    // 此时还需要设置正确的scrollLeft值来保证当前窗口位置不变
+    // 有点小复杂
+  }
+
+  onWheel = e => {
+    // if (e.deltaY > 0)
+    //   window.requestAnimationFrame(() =>
+    //     this.scale(this.state.column, Math.round(this.state.boardWidth / 1.05))
+    //   )
+    // if (e.deltaY < 0)
+    const deltaY = e.deltaY
+    window.requestAnimationFrame(() =>
+      this.scale(
+        this.state.column,
+        Math.round(this.state.boardWidth * (1 - deltaY / 2000))
+      )
     )
   }
 
@@ -249,12 +273,51 @@ class Container extends React.PureComponent {
     )
   }
 
+  computeFenceLength(min = 60, max = 150) {
+    // let [length, unitX] = [this.state.column, this.state.boardWidth / this.state.column]
+    // for (; unitX >= min && unitX <= max; ) {
+    //   debugger
+    //   if (unitX < min) length = Math.round(length / 1.2)
+    //   if (unitX > max) length = Math.round(length * 1.2)
+    //   unitX = this.state.boardWidth / length
+    // }
+    // return length
+    const unitX = this.state.boardWidth / this.state.column
+    if (unitX < 40) return 24
+    if (unitX > 120) return 240
+    return this.state.column
+  }
+
+  onBoardClick = e => {
+    const left = this.computeTaskLeft(e.pageX + this.containerDom.scrollLeft)
+    const top = this.computeTaskTop(e.pageY + this.containerDom.scrollTop)
+    this.setState(
+      produce(state => {
+        const unitX = state.boardWidth / state.column
+        const width = 5 * unitX
+        state.tasks.push({
+          number: state.tasks.length,
+          left,
+          top,
+          width,
+          dependencies: []
+        })
+        // state.boardWidth = Math.max(state.boardWidth, left + width + unitX + 10)
+        if (left + width + 10 > state.boardWidth) {
+          state.boardWidth += 6 * unitX
+          state.column += 6
+        }
+      })
+    )
+  }
+
   render() {
     return (
       <div
         className="container"
         id="container"
         onMouseMove={this.draggingMouseMove}
+        onWheel={this.onWheel}
       >
         {this.props.connectDropTarget(
           <div
@@ -263,8 +326,9 @@ class Container extends React.PureComponent {
               width: this.state.boardWidth,
               height: this.state.boardHeight
             }}
+            onClick={this.onBoardClick}
           >
-            {Array.from({ length: this.state.column }).map((c, i) => (
+            {Array.from({ length: this.computeFenceLength() }).map((c, i) => (
               <div className="column" key={i} />
             ))}
           </div>
@@ -279,7 +343,7 @@ class Container extends React.PureComponent {
               d={`M${d.oX} ${d.oY}C${d.oX + 100},${d.oY} ${d.dX - 100},${
                 d.dY
               } ${d.dX},${d.dY}`}
-              stroke="#e8a917"
+              stroke="rgb(183, 191, 198)"
               style={{ strokeWidth: '1px' }}
               fill="none"
               key={`${d.origin}-${d.dependence}`}
