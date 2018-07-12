@@ -53,12 +53,16 @@ class Container extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: generateTask(50),
+      tasks: generateTask(600),
       boardWidth: 3000,
       boardHeight: 1000,
       column: 120,
       row: 20,
       adjustableNum: 120,
+      // 下边这些状态是用于拖拽依赖连线的时候画线用的
+      // 实际上有更好的办法，就是把container作为依赖连线拖拽的droptarget
+      // 在hover handler中处理这些逻辑
+      // 这样子还能方便做自动滚屏的操作
       dependencyDragging: false,
       draggingNumber: undefined,
       draggingPos: undefined,
@@ -206,6 +210,7 @@ class Container extends React.PureComponent {
   }
 
   draggingMouseMove = monitor => () => {
+    // 这边实现的繁琐了
     // if (!this.state.dependencyDragging) return
     if (!monitor || ! monitor.getClientOffset()) return
     // scrollLeft Top也应该存入state做成响应式
@@ -287,7 +292,7 @@ class Container extends React.PureComponent {
             id={`task-${t}`}
             key={t.number}
             number={t.number}
-            dependencies={t.dependencies.map(d => this.state.tasks[d])}
+            dependencies={t.dependencies}
             left={t.left}
             top={t.top}
             column={this.state.column}
@@ -313,7 +318,9 @@ export default DragDropContext(HTML5Backend)(
     {
       canDrop,
       drop,
-      hover: _.throttle(moveTask, 100)
+      hover(props, monitor, component) {
+        window.requestAnimationFrame(() => moveTask(props, monitor, component))
+      }
     },
     connect => ({
       connectDropTarget: connect.dropTarget()

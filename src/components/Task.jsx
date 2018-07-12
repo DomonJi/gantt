@@ -11,7 +11,8 @@ function getStyles(props) {
   return {
     position: 'absolute',
     transform,
-    opacity: isDragging ? 0.2 : 1
+    opacity: isDragging ? 0.2 : 1,
+    pointerEvents: isDragging ? 'none' : ''
   }
 }
 
@@ -162,7 +163,8 @@ export default DragSource(
     Symbol.for('Dependency'),
     {
       canDrop(props, monitor) {
-        return props.number !== monitor.getItem().number
+        const item = monitor.getItem()
+        return props.number !== item.number
       },
       drop(props, monitor, component) {
         // console.log(monitor.getItem())
