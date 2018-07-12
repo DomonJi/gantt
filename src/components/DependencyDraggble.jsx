@@ -1,29 +1,22 @@
 import React from 'react'
 import { DragSource } from 'react-dnd'
 import _ from 'lodash'
+import ItemType from './ItemType'
 
-function className (props, state) {
+function className (props) {
   return `task-dependency-handle dependency-handle-${props.pos}`
 }
 
-class DenpendencyDraggble extends React.PureComponent {
-  // constructor (props) {
-  //   super(props)
-  //   this.draggableDom = React.createRef()
-  // }
-  render () {
-    return this.props.connectDragSource(
-      <div
-        className={className(this.props, this.state)}
-        // ref={this.draggableDom}
-        id={`dependency-${this.props.number}-${this.props.pos}`}
-      />
-    )
-  }
-}
+const DenpendencyDraggble = props =>
+  props.connectDragSource(
+    <div
+      className={className(props)}
+      // id={`dependency-${props.number}-${props.pos}`}
+    />
+  )
 
 export default DragSource(
-  Symbol.for('Dependency'),
+  ItemType.DenpendencyDraggble,
   {
     // 在beginDrag中dispatch一个action通知Container的svg画线
     beginDrag (props, monitor, component) {

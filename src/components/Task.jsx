@@ -3,6 +3,7 @@ import { DragSource, DropTarget } from 'react-dnd'
 import DependencyDraggble from './DependencyDraggble'
 import { getEmptyImage } from 'react-dnd-html5-backend'
 import _ from 'lodash'
+import ItemType from './ItemType'
 
 function getStyles(props) {
   const { left, top, isDragging } = props
@@ -143,7 +144,7 @@ class Task extends React.PureComponent {
 }
 
 export default DragSource(
-  Symbol.for('Task'),
+  ItemType.Task,
   {
     beginDrag(props, monitor, component) {
       return {
@@ -160,7 +161,7 @@ export default DragSource(
   })
 )(
   DropTarget(
-    Symbol.for('Dependency'),
+    ItemType.DenpendencyDraggble,
     {
       canDrop(props, monitor) {
         const item = monitor.getItem()

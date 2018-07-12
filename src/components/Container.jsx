@@ -1,7 +1,7 @@
 import React from 'react'
 import { DragDropContext, DropTarget } from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend'
-// import GanttBody from './GanttBody'
+import ItemType from './ItemType'
 import Task from './Task'
 import { generateTask } from './test'
 import _ from 'lodash'
@@ -53,7 +53,7 @@ class Container extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: generateTask(600),
+      tasks: generateTask(200),
       boardWidth: 3000,
       boardHeight: 1000,
       column: 120,
@@ -212,7 +212,7 @@ class Container extends React.PureComponent {
   draggingMouseMove = monitor => () => {
     // 这边实现的繁琐了
     // if (!this.state.dependencyDragging) return
-    if (!monitor || ! monitor.getClientOffset()) return
+    if (!monitor || !monitor.getClientOffset()) return
     // scrollLeft Top也应该存入state做成响应式
     const mouseX = monitor.getClientOffset().x + this.containerDom.scrollLeft
     const mouseY = monitor.getClientOffset().y + this.containerDom.scrollTop
@@ -314,7 +314,7 @@ class Container extends React.PureComponent {
 
 export default DragDropContext(HTML5Backend)(
   DropTarget(
-    Symbol.for('Task'),
+    ItemType.Task,
     {
       canDrop,
       drop,
