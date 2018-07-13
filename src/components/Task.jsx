@@ -79,7 +79,14 @@ class Task extends React.PureComponent {
     if (this.state.leftHandleDragging || this.state.rightHandleDragging) {
       const unitX = this.props.boardWidth / this.props.adjustableNum
       const mouseX =
-        Math.round((e.pageX + this.containerDom.scrollLeft) / unitX) * unitX + 5
+        Math.round(
+          (e.clientX +
+            this.containerDom.scrollLeft -
+            this.containerDom.getBoundingClientRect().left) /
+            unitX
+        ) *
+          unitX +
+        5
       const handleWidth = 10
       const taskRight = this.props.left + handleWidth + this.props.taskBodyWidth
       if (this.state.rightHandleDragging)
@@ -165,7 +172,8 @@ export default DragSource(
       return {
         number: props.number,
         left: props.left,
-        top: props.top
+        top: props.top,
+        width: props.taskBodyWidth
       }
     }
   },

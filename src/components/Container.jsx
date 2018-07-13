@@ -9,12 +9,31 @@ import produce from 'immer'
 
 function moveTask(props, monitor, component) {
   if (!component || !monitor) return
-  const delta = monitor.getDifferenceFromInitialOffset()
+  // const delta = monitor.getDifferenceFromInitialOffset()
+  const clientOffset = monitor.getSourceClientOffset()
   const item = monitor.getItem()
-  if (!item || !delta) return
+  if (!item || !clientOffset) return
 
-  let left = item.left + delta.x
-  let top = item.top + delta.y
+  const scrollLeft = component.containerDom.scrollLeft
+  const scrollTop = component.containerDom.scrollTop
+  const rect = component.containerDom.getBoundingClientRect()
+
+  let left = clientOffset.x - rect.left + scrollLeft
+  let top = clientOffset.y - rect.top + scrollTop
+
+  // edge auto scroll
+  // console.log(left, item.width, scrollLeft, rect.left, rect.right)
+  // console.log(clientOffset.x)
+  // const overRightEdge = clientOffset.x + item.width - rect.right
+  // if (overRightEdge > 0) {
+  //   component.containerDom.scrollLeft += 4
+  // }
+  // const overLeftEdge = clientOffset.x - rect.left
+  // if (overLeftEdge < 0) {
+  //   component.containerDom.scrollLeft += -4
+  // }
+
+  // const overLeftEdge =
 
   // snap to grid
   const unitX = component.state.boardWidth / component.state.adjustableNum
@@ -33,32 +52,41 @@ function canDrop(props, monitor) {
 
 function drop(props, monitor, component) {
   // 判断是否可以放置，时间是否冲突，如果不能放置则 reset Task 位置
-  // const item = monitor.getItem()
-  // const thisTask = component.state.tasks[item.number]
-  // const tasks = component.state.tasks
-  // const tasksSameLine = _.filter(tasks, t => t.top === thisTask.top)
-  // _.forEach(tasksSameLine, t => {
-  //   if (
-  //     (t.left > thisTask.left && t.left < thisTask.left + thisTask.width) ||
-  //     (t.left + t.width > thisTask.left &&
-  //       t.left + t.width < thisTask.left + thisTask.width)
-  //   )
-  //     return component.moveTask(item.number, item.left, item.top)
-  // })
+  const item = monitor.getItem()
+  const thisTask = component.state.tasks[item.number]
+  const tasks = component.state.tasks
+  const tasksSameLine = _.filter(tasks, t => t.top === thisTask.top)
+  // debugger;
+  _.forEach(tasksSameLine, t => {
+    if (
+      (t.left > thisTask.left && t.left < thisTask.left + thisTask.width) ||
+      (t.left + t.width > thisTask.left &&
+        t.left + t.width < thisTask.left + thisTask.width)
+    )
+      return component.moveTask(item.number, item.left, item.top)
+  })
   moveTask(props, monitor, component)
 
   // dispatch event
 }
+
+function getQueryString(name) {
+  var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
+  var r = window.location.search.substr(1).match(reg)
+  if (r != null) return unescape(r[2])
+  return null
+}
+
 class Container extends React.PureComponent {
   constructor(props) {
     super(props)
     this.state = {
-      tasks: generateTask(50),
-      boardWidth: 3000,
-      boardHeight: 1000,
+      tasks: generateTask(getQueryString('num') || 50),
+      boardWidth: 6000,
+      boardHeight: 768,
       column: 60,
-      row: 20,
-      adjustableNum: 120,
+      row: 16,
+      adjustableNum: 240,
       // 下边这些状态是用于拖拽依赖连线的时候画线用的
       // 实际上有更好的办法，就是把container作为依赖连线拖拽的droptarget
       // 在hover handler中处理这些逻辑
@@ -85,6 +113,12 @@ class Container extends React.PureComponent {
     )
     // window.scale = this.scale
     this.containerDom = document.getElementById('container')
+    // window.requestAnimationFrame(() => {
+    //   const rect = this.containerDom.getBoundingClientRect()
+    //   this.containerLeftOffset = rect.left
+    //   this.containerTopOffset = rect.top
+    //   console.log(this.containerLeftOffset, this.containerTopOffset)
+    // })
   }
 
   onTaskUpdateLeft = (number, left) => {
@@ -237,9 +271,13 @@ class Container extends React.PureComponent {
     // 这边实现的繁琐了
     // if (!this.state.dependencyDragging) return
     if (!monitor || !monitor.getClientOffset()) return
+
+    const rect = this.containerDom.getBoundingClientRect()
     // scrollLeft Top也应该存入state做成响应式
-    const mouseX = monitor.getClientOffset().x + this.containerDom.scrollLeft
-    const mouseY = monitor.getClientOffset().y + this.containerDom.scrollTop
+    const mouseX =
+      monitor.getClientOffset().x + this.containerDom.scrollLeft - rect.left
+    const mouseY =
+      monitor.getClientOffset().y + this.containerDom.scrollTop - rect.top
     this.setState({
       mouseX,
       mouseY
@@ -289,8 +327,14 @@ class Container extends React.PureComponent {
   }
 
   onBoardClick = e => {
-    const left = this.computeTaskLeft(e.pageX + this.containerDom.scrollLeft)
-    const top = this.computeTaskTop(e.pageY + this.containerDom.scrollTop)
+    const rect = this.containerDom.getBoundingClientRect()
+    console.log(rect)
+    const left = this.computeTaskLeft(
+      e.clientX + this.containerDom.scrollLeft - rect.left
+    )
+    const top = this.computeTaskTop(
+      e.clientY + this.containerDom.scrollTop - rect.top
+    )
     this.setState(
       produce(state => {
         const unitX = state.boardWidth / state.column
@@ -326,7 +370,7 @@ class Container extends React.PureComponent {
               width: this.state.boardWidth,
               height: this.state.boardHeight
             }}
-            onClick={this.onBoardClick}
+            onDoubleClick={this.onBoardClick}
           >
             {Array.from({ length: this.computeFenceLength() }).map((c, i) => (
               <div className="column" key={i} />
@@ -369,6 +413,7 @@ class Container extends React.PureComponent {
             addDependency={this.addDependency}
             dependencyBeginDrag={this.dependencyBeginDrag}
             dependencyEndDrag={this.dependencyEndDrag}
+            // isOver={this.props.isOver}
           />
         ))}
       </div>
@@ -386,8 +431,9 @@ export default DragDropContext(HTML5Backend)(
         window.requestAnimationFrame(() => moveTask(props, monitor, component))
       }
     },
-    connect => ({
-      connectDropTarget: connect.dropTarget()
+    (connect, monitor) => ({
+      connectDropTarget: connect.dropTarget(),
+      // isOver: monitor.isOver()
     })
   )(Container)
 )
