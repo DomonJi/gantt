@@ -6,14 +6,14 @@ import _ from 'lodash'
 import ItemType from './ItemType'
 
 function getStyles(props) {
-  const { left, top, isDragging } = props
+  const { left, top, isDragging, isTaskDragging, number } = props
   const transform = `translate3d(${left - 10}px, ${top}px, 0)`
 
   return {
     position: 'absolute',
     transform,
     opacity: isDragging ? 0.2 : 1,
-    pointerEvents: isDragging ? 'none' : ''
+    pointerEvents: isDragging || (isTaskDragging !== number && isTaskDragging) ? 'none' : ''
   }
 }
 
@@ -169,12 +169,16 @@ export default DragSource(
   ItemType.Task,
   {
     beginDrag(props, monitor, component) {
+      props.beginDrag(props.number)
       return {
         number: props.number,
         left: props.left,
         top: props.top,
         width: props.taskBodyWidth
       }
+    },
+    endDrag(props) {
+      props.endDrag()
     }
   },
   (connect, monitor) => ({

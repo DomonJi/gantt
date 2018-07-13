@@ -24,14 +24,14 @@ function moveTask(props, monitor, component) {
   // edge auto scroll
   // console.log(left, item.width, scrollLeft, rect.left, rect.right)
   // console.log(clientOffset.x)
-  // const overRightEdge = clientOffset.x + item.width - rect.right
-  // if (overRightEdge > 0) {
-  //   component.containerDom.scrollLeft += 4
-  // }
-  // const overLeftEdge = clientOffset.x - rect.left
-  // if (overLeftEdge < 0) {
-  //   component.containerDom.scrollLeft += -4
-  // }
+  const overRightEdge = clientOffset.x + item.width - rect.right
+  if (overRightEdge > 0) {
+    component.containerDom.scrollLeft += 4
+  }
+  const overLeftEdge = clientOffset.x - rect.left
+  if (overLeftEdge < 0) {
+    component.containerDom.scrollLeft += -4
+  }
 
   // const overLeftEdge =
 
@@ -53,18 +53,41 @@ function canDrop(props, monitor) {
 function drop(props, monitor, component) {
   // 判断是否可以放置，时间是否冲突，如果不能放置则 reset Task 位置
   const item = monitor.getItem()
+  const [left, top] = [item.left, item.top]
   const thisTask = component.state.tasks[item.number]
   const tasks = component.state.tasks
-  const tasksSameLine = _.filter(tasks, t => t.top === thisTask.top)
-  // debugger;
-  _.forEach(tasksSameLine, t => {
-    if (
-      (t.left > thisTask.left && t.left < thisTask.left + thisTask.width) ||
-      (t.left + t.width > thisTask.left &&
-        t.left + t.width < thisTask.left + thisTask.width)
+  const tasksSameLine = _.filter(
+    tasks,
+    t => t.top === thisTask.top && t.number !== item.number
+  )
+  // _.forEach(tasksSameLine, t => {
+  //   if (
+  //     (t.left > thisTask.left && t.left < thisTask.left + thisTask.width) ||
+  //     (t.left + t.width > thisTask.left &&
+  //       t.left + t.width < thisTask.left + thisTask.width)
+  //   )
+  //     return window.requestAnimationFrame(() =>
+  //       component.moveTask(item.number, left, top)
+  //     )
+  // })
+
+  // 判断重叠
+  if (
+    _.some(
+      tasksSameLine,
+      t =>
+        (t.left >= thisTask.left && t.left <= thisTask.left + thisTask.width) ||
+        (t.left + t.width >= thisTask.left &&
+          t.left + t.width <= thisTask.left + thisTask.width) ||
+        (thisTask.left >= t.left &&
+          thisTask.left + thisTask.width <= t.left + t.width)
     )
-      return component.moveTask(item.number, item.left, item.top)
-  })
+  ) {
+    window.requestAnimationFrame(() =>
+      component.moveTask(item.number, left, top)
+    )
+    return
+  }
   moveTask(props, monitor, component)
 
   // dispatch event
@@ -95,7 +118,8 @@ class Container extends React.PureComponent {
       draggingNumber: undefined,
       draggingPos: undefined,
       mouseX: 0,
-      mouseY: 0
+      mouseY: 0,
+      isTaskDragging: undefined
     }
     // this.draggingMouseMove = _.throttle(this.draggingMouseMove, 60)
     // this.onWheel = _.throttle(this.onWheel, 100)
@@ -355,6 +379,14 @@ class Container extends React.PureComponent {
     )
   }
 
+  onTaskBeginDrag = num => {
+    this.setState({ isTaskDragging: num })
+  }
+
+  onTaskEndDrag = () => {
+    this.setState({ isTaskDragging: undefined })
+  }
+
   render() {
     return (
       <div
@@ -414,6 +446,9 @@ class Container extends React.PureComponent {
             dependencyBeginDrag={this.dependencyBeginDrag}
             dependencyEndDrag={this.dependencyEndDrag}
             // isOver={this.props.isOver}
+            beginDrag={this.onTaskBeginDrag}
+            endDrag={this.onTaskEndDrag}
+            isTaskDragging={this.state.isTaskDragging}
           />
         ))}
       </div>
@@ -432,7 +467,7 @@ export default DragDropContext(HTML5Backend)(
       }
     },
     (connect, monitor) => ({
-      connectDropTarget: connect.dropTarget(),
+      connectDropTarget: connect.dropTarget()
       // isOver: monitor.isOver()
     })
   )(Container)
