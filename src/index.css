@@ -52,7 +52,11 @@ body {
   opacity: 0;
 }
 
-.task:hover .task-handle {
+.task:hover:not(.is-dragging) .task-handle{
+  opacity: 1;
+  cursor: ew-resize;
+}
+.task.handle-dragging:not(.is-dragging) .task-handle{
   opacity: 1;
   cursor: ew-resize;
 }
@@ -86,7 +90,11 @@ body {
   opacity: 0;
 }
 
-.task:hover .task-dependency-handle {
+.task:hover:not(.is-dragging) .task-dependency-handle{
+  opacity: 1;
+  cursor: pointer;
+}
+.task.handle-dragging:not(.is-dragging) .task-dependency-handle{
   opacity: 1;
   cursor: pointer;
 }

@@ -13,7 +13,8 @@ function getStyles(props) {
     position: 'absolute',
     transform,
     opacity: isDragging ? 0.2 : 1,
-    pointerEvents: isDragging || (isTaskDragging !== number && isTaskDragging) ? 'none' : ''
+    pointerEvents:
+      isDragging || (isTaskDragging !== number && isTaskDragging) ? 'none' : ''
   }
 }
 
@@ -121,7 +122,14 @@ class Task extends React.PureComponent {
 
   render() {
     return (
-      <div className="task" style={getStyles(this.props)}>
+      <div
+        className={`task${
+          this.state.leftHandleDragging || this.state.rightHandleDragging
+            ? ' handle-dragging'
+            : ''
+        }${this.props.isDragging ? ' is-dragging' : ''}`}
+        style={getStyles(this.props)}
+      >
         <div
           className="task-handle handle-left"
           ref={this.startPoint}
