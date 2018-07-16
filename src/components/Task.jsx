@@ -79,7 +79,7 @@ class Task extends React.PureComponent {
   onHandleMouseMove = e => {
     if (this.state.leftHandleDragging || this.state.rightHandleDragging) {
       const unitX = this.props.boardWidth / this.props.adjustableNum
-      const mouseX =
+      let mouseX =
         Math.round(
           (e.clientX +
             this.containerDom.scrollLeft -
@@ -90,12 +90,20 @@ class Task extends React.PureComponent {
         5
       const handleWidth = 10
       const taskRight = this.props.left + handleWidth + this.props.taskBodyWidth
-      if (this.state.rightHandleDragging)
+      if (this.state.rightHandleDragging) {
+        mouseX = Math.max(
+          mouseX,
+          this.props.left + unitX + handleWidth / 2
+        )
         this.props.updateWidth(
           this.props.number,
           mouseX - handleWidth / 2 - this.props.left
         )
-      else {
+      } else {
+        mouseX = Math.min(
+          mouseX,
+          this.props.left + this.props.taskBodyWidth - unitX + handleWidth / 2
+        )
         this.props.updateWidth(
           this.props.number,
           taskRight - mouseX - handleWidth / 2
@@ -152,6 +160,7 @@ class Task extends React.PureComponent {
                 width: this.props.taskBodyWidth,
                 backgroundColor: this.randomColor
               }}
+              onDrag={this.props.onTaskDrag}
             />
           )
         )}

@@ -241,6 +241,15 @@ class Container extends React.PureComponent {
     return Math.round(width / unitX) * unitX
   }
 
+  onTaskDrag = e => {
+    const clientX = e.clientX
+    window.requestAnimationFrame(() => {
+      const rect = this.containerDom.getBoundingClientRect()
+      if (clientX > rect.right) this.containerDom.scrollLeft += 10
+      if (clientX < rect.left) this.containerDom.scrollLeft -= 10
+    })
+  }
+
   // onDependencyMouseMove = (pos, number, x, y) => {
   //   this.setState(produce(state => {
   //     state.draggingNumber = number
@@ -449,6 +458,7 @@ class Container extends React.PureComponent {
             beginDrag={this.onTaskBeginDrag}
             endDrag={this.onTaskEndDrag}
             isTaskDragging={this.state.isTaskDragging}
+            onTaskDrag={this.onTaskDrag}
           />
         ))}
       </div>
