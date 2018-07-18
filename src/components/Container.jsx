@@ -44,15 +44,19 @@ function moveTask(props, monitor, component) {
     Math.round(top / unitY) * unitY
   ]
 
-  window.requestAnimationFrame(() => component.moveTask(item.number, left, top))
-  if (item.otherSelected.length) {
+  if (item.selected.length) {
     window.requestAnimationFrame(() => {
-      item.otherSelected.forEach(t => {
-        const deltaX = -item.left + t.left
-        const deltaY = -item.top + t.top
-        component.moveTask(t.number, left + deltaX, top + deltaY)
-      })
+      component.moveMultipleTask(
+        item.selected.map(t => {
+          const deltaX = -item.left + t.left
+          const deltaY = -item.top + t.top
+          // component.moveTask(t.number, left + deltaX, top + deltaY)
+          return { number: t.number, left: left + deltaX, top: top + deltaY }
+        })
+      )
     })
+  } else {
+    window.requestAnimationFrame(() => component.moveTask(item.number, left, top))
   }
 }
 
@@ -177,6 +181,17 @@ class Container extends React.PureComponent {
       produce(state => {
         state.tasks[number].left = left
         state.tasks[number].top = top
+      })
+    )
+  }
+
+  moveMultipleTask = tasks => {
+    this.setState(
+      produce(state => {
+        tasks.forEach(t => {
+          state.tasks[t.number].left = t.left
+          state.tasks[t.number].top = t.top
+        })
       })
     )
   }

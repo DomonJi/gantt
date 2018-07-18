@@ -194,7 +194,7 @@ export default DragSource(
         left: props.left,
         top: props.top,
         width: props.taskBodyWidth,
-        otherSelected: _.filter(props.selected, t => t.number !== props.number)
+        selected: props.selected,
       }
     },
     endDrag(props) {
