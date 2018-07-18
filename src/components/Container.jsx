@@ -24,14 +24,14 @@ function moveTask(props, monitor, component) {
   // edge auto scroll
   // console.log(left, item.width, scrollLeft, rect.left, rect.right)
   // console.log(clientOffset.x)
-  const overRightEdge = clientOffset.x + item.width - rect.right
-  if (overRightEdge > 0) {
-    component.containerDom.scrollLeft += 4
-  }
-  const overLeftEdge = clientOffset.x - rect.left
-  if (overLeftEdge < 0) {
-    component.containerDom.scrollLeft += -4
-  }
+  // const overRightEdge = clientOffset.x + item.width - rect.right
+  // if (overRightEdge > 0) {
+  //   // component.containerDom.scrollLeft += 4
+  // }
+  // const overLeftEdge = clientOffset.x - rect.left
+  // if (overLeftEdge < 0) {
+  //   // component.containerDom.scrollLeft += -4
+  // }
 
   // const overLeftEdge =
 
@@ -119,7 +119,8 @@ class Container extends React.PureComponent {
       draggingPos: undefined,
       mouseX: 0,
       mouseY: 0,
-      isTaskDragging: undefined
+      isTaskDragging: undefined,
+      scrollMove: 0
     }
     // this.draggingMouseMove = _.throttle(this.draggingMouseMove, 60)
     // this.onWheel = _.throttle(this.onWheel, 100)
@@ -245,8 +246,11 @@ class Container extends React.PureComponent {
     const clientX = e.clientX
     window.requestAnimationFrame(() => {
       const rect = this.containerDom.getBoundingClientRect()
-      if (clientX > rect.right) this.containerDom.scrollLeft += 10
-      if (clientX < rect.left) this.containerDom.scrollLeft -= 10
+      if (clientX > rect.right)
+        this.setState({ scrollMove: (clientX - rect.right) / 5 })
+      else if (clientX < rect.left)
+        this.setState({ scrollMove: (clientX - rect.left) / 5 })
+      else this.setState({ scrollMove: 0 })
     })
   }
 
@@ -388,12 +392,22 @@ class Container extends React.PureComponent {
     )
   }
 
+  scrollContainer = () => {
+    // console.log(this.state.scrollMove)
+    if (this.state.scrollMove) {
+      this.containerDom.scrollLeft += this.state.scrollMove
+    }
+    this.scrollInterval = window.requestAnimationFrame(this.scrollContainer)
+  }
+
   onTaskBeginDrag = num => {
     this.setState({ isTaskDragging: num })
+    this.scrollInterval = window.requestAnimationFrame(this.scrollContainer)
   }
 
   onTaskEndDrag = () => {
     this.setState({ isTaskDragging: undefined })
+    window.cancelAnimationFrame(this.scrollInterval)
   }
 
   render() {
