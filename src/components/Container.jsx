@@ -14,6 +14,7 @@ function moveTask(props, monitor, component) {
   const item = monitor.getItem()
   if (!item || !clientOffset) return
 
+  // console.log(component.setState)
   const scrollLeft = component.containerDom.scrollLeft
   const scrollTop = component.containerDom.scrollTop
   const rect = component.containerDom.getBoundingClientRect()
@@ -44,6 +45,15 @@ function moveTask(props, monitor, component) {
   ]
 
   window.requestAnimationFrame(() => component.moveTask(item.number, left, top))
+  if (item.otherSelected.length) {
+    window.requestAnimationFrame(() => {
+      item.otherSelected.forEach(t => {
+        const deltaX = -item.left + t.left
+        const deltaY = -item.top + t.top
+        component.moveTask(t.number, left + deltaX, top + deltaY)
+      })
+    })
+  }
 }
 
 function canDrop(props, monitor) {
@@ -113,14 +123,14 @@ class Container extends React.PureComponent {
       // 下边这些状态是用于拖拽依赖连线的时候画线用的
       // 实际上有更好的办法，就是把container作为依赖连线拖拽的droptarget
       // 在hover handler中处理这些逻辑
-      // 这样子还能方便做自动滚屏的操作
       dependencyDragging: false,
       draggingNumber: undefined,
       draggingPos: undefined,
       mouseX: 0,
       mouseY: 0,
-      isTaskDragging: undefined,
-      scrollMove: 0
+      isTaskDragging: undefined, // 变量名起错了
+      scrollMove: 0,
+      selectedTasks: []
     }
     // this.draggingMouseMove = _.throttle(this.draggingMouseMove, 60)
     // this.onWheel = _.throttle(this.onWheel, 100)
@@ -410,6 +420,77 @@ class Container extends React.PureComponent {
     window.cancelAnimationFrame(this.scrollInterval)
   }
 
+  onContainerMouseDown = e => {
+    const rect = this.containerDom.getBoundingClientRect()
+    this.setState({
+      mouseStartX: e.clientX + this.containerDom.scrollLeft - rect.left,
+      mouseStartY: e.clientY + this.containerDom.scrollTop - rect.top,
+      mouseDown: true,
+      selectedTasks: []
+    })
+  }
+
+  onContainerMouseMove = e => {
+    if (!this.state.mouseDown) return
+    const clientX = e.clientX
+    const clientY = e.clientY
+    window.requestAnimationFrame(() => {
+      if (!this.state.mouseDown) return
+      const rect = this.containerDom.getBoundingClientRect()
+      const mouseX = clientX + this.containerDom.scrollLeft - rect.left
+      const mouseY = clientY + this.containerDom.scrollTop - rect.top
+      const width = Math.abs(mouseX - this.state.mouseStartX)
+      const height = Math.abs(mouseY - this.state.mouseStartY)
+      this.setState({
+        mouseX,
+        mouseY
+      })
+      if (width > 1 && height > 1) {
+        this.setState(
+          produce(state => {
+            state.selection = true
+            state.selectedTasks = _
+              .chain(state.tasks)
+              .filter(this.isCollision)
+              .map(t => t.number)
+              .value()
+          })
+        )
+      }
+    })
+  }
+
+  isCollision = t => {
+    const { width: sWidth, height: sHeight } = this.getSelectionStyle()
+    const left = t.left
+    const right = t.left + t.width
+    const top = t.top
+    const bottom = t.top + 40
+    const sLeft = Math.min(this.state.mouseX, this.state.mouseStartX)
+    const sTop = Math.min(this.state.mouseY, this.state.mouseStartY)
+    return !(
+      bottom < sTop ||
+      top > sTop + sHeight ||
+      right < sLeft ||
+      left > sLeft + sWidth
+    )
+  }
+
+  onContainerMouseUp = e => {
+    this.setState({ selection: false, mouseDown: false })
+  }
+
+  getSelectionStyle() {
+    return {
+      transform: `translate3d(${Math.min(
+        this.state.mouseStartX,
+        this.state.mouseX
+      )}px, ${Math.min(this.state.mouseStartY, this.state.mouseY)}px, 0)`,
+      width: Math.abs(this.state.mouseX - this.state.mouseStartX),
+      height: Math.abs(this.state.mouseY - this.state.mouseStartY)
+    }
+  }
+
   render() {
     return (
       <div
@@ -426,10 +507,16 @@ class Container extends React.PureComponent {
               height: this.state.boardHeight
             }}
             onDoubleClick={this.onBoardClick}
+            onMouseDown={this.onContainerMouseDown}
+            onMouseMove={this.onContainerMouseMove}
+            onMouseUp={this.onContainerMouseUp}
           >
             {Array.from({ length: this.computeFenceLength() }).map((c, i) => (
               <div className="column" key={i} />
             ))}
+            {this.state.selection ? (
+              <div className="selection" style={this.getSelectionStyle()} />
+            ) : null}
           </div>
         )}
         <svg
@@ -473,6 +560,9 @@ class Container extends React.PureComponent {
             endDrag={this.onTaskEndDrag}
             isTaskDragging={this.state.isTaskDragging}
             onTaskDrag={this.onTaskDrag}
+            selected={_.filter(this.state.tasks, t =>
+              _.includes(this.state.selectedTasks, t.number)
+            )}
           />
         ))}
       </div>

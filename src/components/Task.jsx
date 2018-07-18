@@ -91,10 +91,7 @@ class Task extends React.PureComponent {
       const handleWidth = 10
       const taskRight = this.props.left + handleWidth + this.props.taskBodyWidth
       if (this.state.rightHandleDragging) {
-        mouseX = Math.max(
-          mouseX,
-          this.props.left + unitX + handleWidth / 2
-        )
+        mouseX = Math.max(mouseX, this.props.left + unitX + handleWidth / 2)
         this.props.updateWidth(
           this.props.number,
           mouseX - handleWidth / 2 - this.props.left
@@ -154,7 +151,12 @@ class Task extends React.PureComponent {
         {this.props.connectDropTarget(
           this.props.connectDragSource(
             <div
-              className={`task-body${this.props.isOver ? ' hover' : ''}`}
+              className={`task-body${
+                this.props.isOver ||
+                _.find(this.props.selected, t => t.number === this.props.number)
+                  ? ' hover'
+                  : ''
+              }`}
               id={this.props.id}
               style={{
                 width: this.props.taskBodyWidth,
@@ -191,7 +193,8 @@ export default DragSource(
         number: props.number,
         left: props.left,
         top: props.top,
-        width: props.taskBodyWidth
+        width: props.taskBodyWidth,
+        otherSelected: _.filter(props.selected, t => t.number !== props.number)
       }
     },
     endDrag(props) {
