@@ -191,12 +191,14 @@ export default DragSource(
   {
     beginDrag(props, monitor, component) {
       props.beginDrag(props.number)
+      const inSelected = _.find(props.selected, t => t.number === props.number)
       return {
         number: props.number,
         left: props.left,
         top: props.top,
         width: props.taskBodyWidth,
-        selected: props.selected
+        selected: props.selected,
+        inSelected
       }
     },
     endDrag(props) {

@@ -44,7 +44,7 @@ function moveTask(props, monitor, component) {
     Math.round(top / unitY) * unitY
   ]
 
-  if (item.selected.length) {
+  if (item.selected.length && item.inSelected) {
     window.requestAnimationFrame(() => {
       component.moveMultipleTask(
         item.selected.map(t => {
