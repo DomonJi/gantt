@@ -56,7 +56,9 @@ function moveTask(props, monitor, component) {
       )
     })
   } else {
-    window.requestAnimationFrame(() => component.moveTask(item.number, left, top))
+    window.requestAnimationFrame(() =>
+      component.moveTask(item.number, left, top)
+    )
   }
 }
 
@@ -158,6 +160,13 @@ class Container extends React.PureComponent {
     //   this.containerTopOffset = rect.top
     //   console.log(this.containerLeftOffset, this.containerTopOffset)
     // })
+    document.addEventListener('mousemove', this.onContainerMouseMove)
+    document.addEventListener('mouseup', this.onContainerMouseUp)
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('mousemove', this.onContainerMouseMove)
+    document.removeEventListener('mouseup', this.onContainerMouseUp)
   }
 
   onTaskUpdateLeft = (number, left) => {
@@ -523,8 +532,8 @@ class Container extends React.PureComponent {
             }}
             onDoubleClick={this.onBoardClick}
             onMouseDown={this.onContainerMouseDown}
-            onMouseMove={this.onContainerMouseMove}
-            onMouseUp={this.onContainerMouseUp}
+            // onMouseMove={this.onContainerMouseMove}
+            // onMouseUp={this.onContainerMouseUp}
           >
             {Array.from({ length: this.computeFenceLength() }).map((c, i) => (
               <div className="column" key={i} />
@@ -578,6 +587,7 @@ class Container extends React.PureComponent {
             selected={_.filter(this.state.tasks, t =>
               _.includes(this.state.selectedTasks, t.number)
             )}
+            isSelecting={this.mouseDown}
           />
         ))}
       </div>

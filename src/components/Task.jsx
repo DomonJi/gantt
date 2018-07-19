@@ -6,7 +6,7 @@ import _ from 'lodash'
 import ItemType from './ItemType'
 
 function getStyles(props) {
-  const { left, top, isDragging, isTaskDragging, number } = props
+  const { left, top, isDragging, isTaskDragging, number, isSelecting } = props
   const transform = `translate3d(${left - 10}px, ${top}px, 0)`
 
   return {
@@ -14,7 +14,9 @@ function getStyles(props) {
     transform,
     opacity: isDragging ? 0.2 : 1,
     pointerEvents:
-      isDragging || (isTaskDragging !== number && isTaskDragging) ? 'none' : ''
+      isDragging || (isTaskDragging !== number && isTaskDragging) || isSelecting
+        ? 'none'
+        : ''
   }
 }
 
@@ -194,7 +196,7 @@ export default DragSource(
         left: props.left,
         top: props.top,
         width: props.taskBodyWidth,
-        selected: props.selected,
+        selected: props.selected
       }
     },
     endDrag(props) {
