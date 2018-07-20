@@ -7,6 +7,12 @@ import { generateTask } from './test'
 import _ from 'lodash'
 import produce from 'immer'
 
+// 所有的 getBoundingClientRect 应该统一放到组件的 this 上，在相应鼠标事件开始的时候去拿，
+// 然后也要放到 requestAnimationFrame 中
+
+// 所有带 requestAnimationFrame 的事件函数中需要判断当前是否已经在执行 requestAnimationFrame
+// 如果是则直接 return
+
 function moveTask(props, monitor, component) {
   if (!component || !monitor) return
   // const delta = monitor.getDifferenceFromInitialOffset()
@@ -44,6 +50,7 @@ function moveTask(props, monitor, component) {
     Math.round(top / unitY) * unitY
   ]
 
+  // 应该判断一下值是否有变化再去做setstate
   if (item.selected.length && item.inSelected) {
     window.requestAnimationFrame(() => {
       component.moveMultipleTask(
